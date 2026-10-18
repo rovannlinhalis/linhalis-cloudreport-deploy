@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="title desc">
+  <title id="title">Arquitetura do CloudReport Community</title>
+  <desc id="desc">Navegador acessa CloudReport por HTTPS; banco e arquivos podem usar containers locais ou serviços externos; o licenciamento Linhalis é consultado para ativação e validação.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1"><stop stop-color="#071522"/><stop offset="1" stop-color="#102b3d"/></linearGradient>
+    <linearGradient id="accent" x1="0" x2="1"><stop stop-color="#8be35d"/><stop offset="1" stop-color="#39c9e6"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity=".28"/></filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#75d99b"/></marker>
+  </defs>
+  <rect width="1200" height="540" rx="28" fill="url(#bg)"/>
+  <text x="60" y="70" fill="#fff" font-family="Inter,Arial,sans-serif" font-size="28" font-weight="700">CloudReport Community</text>
+  <text x="60" y="102" fill="#9fb4c4" font-family="Inter,Arial,sans-serif" font-size="16">Instalador interativo · infraestrutura local ou serviços externos</text>
+  <g filter="url(#shadow)" font-family="Inter,Arial,sans-serif">
+    <rect x="60" y="190" width="210" height="130" rx="18" fill="#152f42" stroke="#42647a"/>
+    <circle cx="105" cy="232" r="18" fill="#39c9e6" opacity=".9"/>
+    <rect x="92" y="263" width="124" height="9" rx="4" fill="#9fb4c4"/>
+    <rect x="92" y="282" width="88" height="7" rx="3" fill="#5d7c90"/>
+    <text x="105" y="355" fill="#fff" font-size="18" font-weight="700">Navegador</text>
+
+    <rect x="380" y="160" width="280" height="190" rx="22" fill="#17384a" stroke="url(#accent)" stroke-width="2"/>
+    <rect x="422" y="202" width="196" height="92" rx="12" fill="#0b1f2d"/>
+    <path d="M446 267 L482 238 L515 253 L553 218 L594 245" fill="none" stroke="url(#accent)" stroke-width="5"/>
+    <text x="425" y="324" fill="#fff" font-size="22" font-weight="700">CloudReport</text>
+    <text x="425" y="347" fill="#a8bbc8" font-size="14">Interface + API · porta 8080</text>
+
+    <rect x="780" y="140" width="170" height="120" rx="18" fill="#152f42" stroke="#42647a"/>
+    <ellipse cx="865" cy="180" rx="45" ry="16" fill="#8be35d" opacity=".9"/>
+    <path d="M820 180v40c0 9 20 16 45 16s45-7 45-16v-40" fill="#274e48" stroke="#8be35d"/>
+    <text x="814" y="292" fill="#fff" font-size="18" font-weight="700">PostgreSQL</text>
+    <text x="809" y="313" fill="#a8bbc8" font-size="12">container ou externo</text>
+
+    <rect x="780" y="330" width="170" height="120" rx="18" fill="#152f42" stroke="#42647a"/>
+    <path d="M820 370h44l13 14h34v38h-91z" fill="#39c9e6" opacity=".75"/>
+    <text x="803" y="482" fill="#fff" font-size="18" font-weight="700">Volume / MinIO</text>
+    <text x="809" y="503" fill="#a8bbc8" font-size="12">local ou externo</text>
+
+    <rect x="1010" y="235" width="150" height="120" rx="18" fill="#152f42" stroke="#42647a"/>
+    <path d="M1042 300c0-16 13-29 29-29 10 0 19 5 24 13 4-3 9-4 14-4 14 0 25 11 25 25s-11 25-25 25h-62c-12 0-22-10-22-22 0-11 7-20 17-22z" fill="url(#accent)" opacity=".85"/>
+    <text x="1035" y="386" fill="#fff" font-size="16" font-weight="700">Licenciamento</text>
+    <text x="1048" y="407" fill="#a8bbc8" font-size="13">Linhalis</text>
+  </g>
+  <g fill="none" stroke="#75d99b" stroke-width="3" marker-end="url(#arrow)">
+    <path d="M270 255 H368"/>
+    <path d="M660 215 H768"/>
+    <path d="M660 300 C720 300 720 390 768 390"/>
+    <path d="M660 255 C840 255 850 295 998 295" stroke-dasharray="8 8"/>
+  </g>
+  <g fill="#9fb4c4" font-family="Inter,Arial,sans-serif" font-size="13">
+    <text x="294" y="240">HTTPS</text>
+    <text x="682" y="200">dados relacionais</text>
+    <text x="684" y="377">arquivos</text>
+    <text x="815" y="278">somente ativação e validação</text>
+  </g>
+</svg>
