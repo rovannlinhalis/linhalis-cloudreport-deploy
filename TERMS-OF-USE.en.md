@@ -42,4 +42,4 @@ These terms may be updated for legal, security, or product changes. The applicab
 
 ## 9. Contact
 
-Commercial information and paid support are available at [linhalis.com](https://linhalis.com/) and through [WhatsApp](https://wa.me/5527998375077).
+For commercial information or paid support, contact the [official WhatsApp](https://wa.me/5527995790376).

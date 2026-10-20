@@ -1,10 +1,10 @@
-# CloudReport Community — deployment
+# CloudReport — deployment
 
-![CloudReport Community](docs/images/cloudreport-community-hero.png)
+![CloudReport](docs/images/cloudreport-hero.png)
 
-This repository contains only the files required to install and update **CloudReport Community** with Docker Compose. The interactive installer generates secrets, builds the configuration, and waits until the application is ready.
+This repository contains only the files required to install and update **CloudReport** with Docker Compose. The interactive installer generates secrets, builds the configuration, and waits until the application is ready.
 
-> Community may be used free of charge for study, development, and commercial purposes by a **one-person team**. It does not allow additional users or project sharing. Free technical support is not included.
+> The image and deployment are not tied to a plan. The effective license is configured and validated by the application at runtime.
 
 [Versão em português](README.md) · [Terms of Use](TERMS-OF-USE.en.md) · [Privacy Policy](PRIVACY-POLICY.en.md)
 
@@ -19,7 +19,7 @@ The installer supports any combination of:
 | Database | PostgreSQL 17 container with randomly generated credentials | Existing PostgreSQL with host, port, database, user, password, and TLS settings |
 | Files | Persistent Docker volume mounted at `/data/storage` | Existing MinIO with endpoint, credentials, bucket, and TLS settings |
 
-The integrated PostgreSQL port is not published on the host. Only the selected CloudReport HTTP port is exposed. The installation identity and cryptographic keys stay in the `cloudreport-data` volume even when the database and MinIO are external.
+The integrated PostgreSQL port is not published on the host. Only the selected CloudReport HTTP port is exposed. Cryptographic keys stay in the `cloudreport-data` volume. The installation identity is stored at `state/instance/identity.key`, outside the container recreation lifecycle, even when the database and MinIO are external.
 
 ## Requirements
 
@@ -31,6 +31,12 @@ The integrated PostgreSQL port is not published on the host. Only the selected C
 - a domain and HTTPS proxy for public use.
 
 For external PostgreSQL, create an empty database first and grant the user permission to create and alter its schema. For external MinIO, the endpoint must be reachable by both the container and browsers opening signed URLs.
+
+### ODBC data sources
+
+The default image includes the `unixODBC` driver manager, but it does not include database- or vendor-specific drivers. To use an ODBC report data source, build a derived CloudReport image that installs the compatible driver and its libraries, together with any required `odbcinst.ini` or `odbc.ini` configuration. Drivers installed only on the Docker host are not available inside the container. Set `DRIVER` to the name registered in `odbcinst.ini`; library paths are rejected.
+
+The dedicated PostgreSQL, MySQL, and SQL Server data sources use their own .NET providers and do not depend on an ODBC driver. For ODBC, keep the database credential read-only and verify that the driver name used in the connection string exists in the derived image. `FILEDSN`, `SAVEFILE`, `DBQ`, database files, local sockets/pipes, logs, and library paths are not accepted. When private networks are blocked, use a recognized PostgreSQL, MySQL, MariaDB, or SQL Server driver and provide the host explicitly; `DSN` requires private-network access to be enabled by an administrator.
 
 ## Installation
 
@@ -62,6 +68,7 @@ The integrated PostgreSQL password is generated automatically. The installer als
 ├── docker-compose.yml
 ├── install-report.txt   # credentials report, mode 600
 ├── install.sh
+├── state/instance/      # stable installation identity
 └── update.sh
 ```
 
@@ -71,9 +78,9 @@ The script validates the Compose model, pulls the images, starts PostgreSQL when
 
 Open the URL entered during installation. The web setup wizard asks for:
 
-- the registrant's name, email, and optional organization;
+- the contract title plus the registrant's name, email, and optional organization;
 - acceptance of the Terms of Use and Privacy Policy;
-- creation of the local administrator after Community activation.
+- creation of the local administrator after license activation.
 
 Complete the first access immediately and keep the port restricted to your network until registration is finished. On an empty installation, the first person to complete this step becomes the administrator.
 
@@ -81,7 +88,7 @@ The registrant details and technical installation identifier are sent to Linhali
 
 ## Updating
 
-The updater downloads the latest Compose file, preserves `.env` and volumes, forces application container recreation, and checks that the bootstrap endpoint responds again:
+The updater downloads the latest Compose file, preserves `.env`, volumes, and the installation identifier, forces application container recreation, and checks that the bootstrap endpoint responds again. On the first update to this version, the script automatically migrates `identity.key` from the existing container to the stable host directory:
 
 ```bash
 cd /opt/cloudreport
@@ -103,7 +110,7 @@ docker compose logs -f cloudreport
 docker compose down
 ```
 
-`docker compose down` preserves volumes. `docker compose down -v` deletes the integrated PostgreSQL database, local files, keys, and installation identity. Do not use it without a valid backup. External PostgreSQL and MinIO data are not removed by Compose.
+`docker compose down` preserves volumes. `docker compose down -v` deletes the integrated PostgreSQL database, local files, and keys; the identity under `state/instance` remains. Do not use `-v` without a valid backup. External PostgreSQL and MinIO data are not removed by Compose.
 
 ## Backup
 
@@ -114,7 +121,7 @@ cd /opt/cloudreport
 docker compose exec -T postgres pg_dump -U cloudreport -d cloudreport -Fc > cloudreport.dump
 ```
 
-Also back up the `cloudreport-data` volume because it contains the installation identity, keys, and local files when local storage is selected. The `postgres-data` volume contains the integrated database. If PostgreSQL or MinIO is external, include it in your infrastructure backup policy.
+Also back up the `cloudreport-data` volume and `/opt/cloudreport/state/instance`; they contain cryptographic keys/local files and the installation identity, respectively. The `postgres-data` volume contains the integrated database. If PostgreSQL or MinIO is external, include it in your infrastructure backup policy.
 
 ## Manual configuration
 
@@ -132,10 +139,10 @@ Use `COMPOSE_PROFILES=database` only to enable integrated PostgreSQL. Leave `COM
 
 Use Caddy, Traefik, Nginx, or your platform proxy. Forward the public domain to `http://BIND_IP:APP_PORT`, preserve `Host`, `X-Forwarded-For`, and `X-Forwarded-Proto`, and allow uploads large enough for your reports.
 
-## Limits and plans
+## Licensing and plans
 
-Community is individual: one administrator, one project, and up to ten reports. Additional users and project sharing are blocked by both the API and UI. For plans with more users or capacity, visit [linhalis.com](https://linhalis.com/) or contact [WhatsApp](https://wa.me/5527998375077).
+The effective plan is obtained from the license contract at runtime. Changing the license does not require rebuilding the image or redeploying the application. For commercial information, contact the [official WhatsApp](https://wa.me/5527995790376).
 
 ## Support
 
-The Community license does not include free support, an SLA, consulting, deployment assistance, or data recovery. Professional services may be purchased separately through Linhalis channels.
+The product does not include free support, an SLA, consulting, deployment assistance, or data recovery. Professional services may be purchased separately through Linhalis channels.

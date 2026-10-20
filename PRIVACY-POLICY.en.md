@@ -14,10 +14,11 @@ CloudReport Community does not include Linhalis product telemetry or advertising
 
 To issue and maintain the free license, the activation form sends Linhalis:
 
+- the contract title entered by the registrant;
 - the registrant's name and email;
 - organization, when provided;
 - the technical installation identifier;
-- the configured instance name and API URL;
+- the instance's technical name and public URL;
 - the accepted terms version and activation date.
 
 This data is used exclusively to create and maintain the license contract, validate the installation, prevent abuse, and communicate license-related matters. It is not sold or used for behavioral advertising.

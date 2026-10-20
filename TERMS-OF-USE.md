@@ -42,4 +42,4 @@ Estes termos podem ser atualizados para refletir mudanças legais, de segurança
 
 ## 9. Contato
 
-Informações comerciais e contratação de suporte estão disponíveis em [linhalis.com](https://linhalis.com/) e no [WhatsApp](https://wa.me/5527998375077).
+Para informações comerciais ou contratação de suporte, entre em contato pelo [WhatsApp oficial](https://wa.me/5527995790376).

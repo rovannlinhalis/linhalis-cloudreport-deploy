@@ -14,10 +14,11 @@ O CloudReport Community não inclui telemetria de produto ou publicidade da Linh
 
 Para emitir e manter a licença gratuita, o formulário envia à Linhalis:
 
+- título do contrato informado pelo responsável;
 - nome e e-mail do responsável pelo registro;
 - organização, quando informada;
 - identificador técnico da instalação;
-- nome técnico da instância e URL configurada da API;
+- nome técnico e URL pública da instância;
 - versão dos termos aceita e data da ativação.
 
 Esses dados são usados exclusivamente para criar e manter o contrato da licença, validar a instalação, prevenir abuso e comunicar assuntos relacionados à licença. Eles não são vendidos nem usados para publicidade comportamental.

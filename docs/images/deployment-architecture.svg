@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="title desc">
-  <title id="title">Arquitetura do CloudReport Community</title>
+  <title id="title">Arquitetura do CloudReport</title>
   <desc id="desc">Navegador acessa CloudReport por HTTPS; banco e arquivos podem usar containers locais ou serviços externos; o licenciamento Linhalis é consultado para ativação e validação.</desc>
   <defs>
     <linearGradient id="bg" x1="0" x2="1"><stop stop-color="#071522"/><stop offset="1" stop-color="#102b3d"/></linearGradient>
@@ -8,7 +8,7 @@
     <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#75d99b"/></marker>
   </defs>
   <rect width="1200" height="540" rx="28" fill="url(#bg)"/>
-  <text x="60" y="70" fill="#fff" font-family="Inter,Arial,sans-serif" font-size="28" font-weight="700">CloudReport Community</text>
+  <text x="60" y="70" fill="#fff" font-family="Inter,Arial,sans-serif" font-size="28" font-weight="700">CloudReport</text>
   <text x="60" y="102" fill="#9fb4c4" font-family="Inter,Arial,sans-serif" font-size="16">Instalador interativo · infraestrutura local ou serviços externos</text>
   <g filter="url(#shadow)" font-family="Inter,Arial,sans-serif">
     <rect x="60" y="190" width="210" height="130" rx="18" fill="#152f42" stroke="#42647a"/>

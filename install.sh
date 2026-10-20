@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-PRODUCT_NAME="CloudReport Community"
-COMPOSE_PROJECT_NAME="cloudreport-community"
+PRODUCT_NAME="CloudReport"
+COMPOSE_PROJECT_NAME="cloudreport"
 DEFAULT_INSTALL_DIR="/opt/cloudreport"
 DEFAULT_IMAGE="${CLOUDREPORT_IMAGE:-docker.io/rovann/cloudreport:${CLOUDREPORT_INSTALL_VERSION:-latest}}"
 RAW_BASE_URL="${CLOUDREPORT_INSTALL_BASE_URL:-https://raw.githubusercontent.com/rovannlinhalis/linhalis-cloudreport-deploy/main}"
@@ -60,7 +60,7 @@ print_banner() {
   \____|_|\___/ \__,_|\__,_|_| \_\___| .__/ \___/|_|   \__|
                                       |_|
 EOF
-    printf '\033[0;37m                    Community · powered by linhalis.com\033[0m\n\n'
+    printf '\033[0;37m                              powered by linhalis.com\033[0m\n\n'
 }
 
 prompt() {
@@ -220,6 +220,45 @@ acquire_deploy_files() {
     chmod 755 "${INSTALL_DIR}/install.sh" "${INSTALL_DIR}/update.sh"
 }
 
+prepare_instance_identity() {
+    local identity_dir identity_file previous_container temporary_identity project_name volume_name volume_mount
+    identity_dir="$(read_env_value INSTANCE_IDENTITY_DIR "${INSTALL_DIR}/state/instance")"
+    [[ "$identity_dir" == /* ]] || identity_dir="${INSTALL_DIR}/${identity_dir#./}"
+    identity_file="${identity_dir}/identity.key"
+    mkdir -p "$identity_dir"
+    chmod 700 "$identity_dir"
+
+    if [[ ! -s "$identity_file" && -f "${INSTALL_DIR}/docker-compose.yml" ]]; then
+        previous_container="$(cd "$INSTALL_DIR" && docker compose ps -aq cloudreport 2>/dev/null | head -n 1 || true)"
+        if [[ -n "$previous_container" ]]; then
+            temporary_identity="$(mktemp "${INSTALL_DIR}/.identity.XXXXXX")"
+            if docker cp "${previous_container}:/data/instance/identity.key" "$temporary_identity" >/dev/null 2>&1 \
+                && [[ -s "$temporary_identity" ]]; then
+                install -m 600 "$temporary_identity" "$identity_file"
+                printf 'Identidade existente migrada do container %s.\n' "${previous_container:0:12}"
+            fi
+            rm -f "$temporary_identity"
+        fi
+    fi
+
+    if [[ ! -s "$identity_file" ]]; then
+        project_name="$(read_env_value COMPOSE_PROJECT_NAME "$COMPOSE_PROJECT_NAME")"
+        for volume_name in "${project_name}_cloudreport-data" "cloudreport_cloudreport-data" "cloudreport-community_cloudreport-data"; do
+            volume_mount="$(docker volume inspect --format '{{.Mountpoint}}' "$volume_name" 2>/dev/null || true)"
+            if [[ -n "$volume_mount" && -s "${volume_mount}/instance/identity.key" ]]; then
+                install -m 600 "${volume_mount}/instance/identity.key" "$identity_file"
+                printf 'Identidade existente migrada do volume %s.\n' "$volume_name"
+                break
+            fi
+        done
+    fi
+
+    if [[ -s "$identity_file" ]]; then
+        chmod 600 "$identity_file"
+    fi
+    INSTANCE_IDENTITY_DIR="$identity_dir"
+}
+
 read_env_value() {
     local key="$1" default_value="${2:-}" line value
     line="$(grep -E "^${key}=" "$ENV_FILE" | tail -n 1 || true)"
@@ -288,6 +327,8 @@ update_installation() {
         || fatal "Nenhuma instalacao foi encontrada em ${INSTALL_DIR}."
 
     info "Atualizando a instancia em ${INSTALL_DIR}"
+    prepare_instance_identity
+    replace_env "INSTANCE_IDENTITY_DIR" "$INSTANCE_IDENTITY_DIR"
     acquire_deploy_files
 
     requested_image=""
@@ -373,6 +414,7 @@ fi
 [[ ! -s "$ENV_FILE" ]] || fatal "Ja existe uma instalacao em ${INSTALL_DIR}. Execute novamente e escolha Atualizar."
 mkdir -p "$INSTALL_DIR"
 chmod 755 "$INSTALL_DIR"
+prepare_instance_identity
 
 info "Acesso ao CloudReport"
 DETECTED_SERVER_IP="$(detect_server_ipv4)"
@@ -484,6 +526,7 @@ write_env "CLOUDREPORT_IMAGE" "$CLOUDREPORT_IMAGE"
 write_env "PUBLIC_URL" "$PUBLIC_URL"
 write_env "APP_BIND_IP" "$APP_BIND_IP"
 write_env "APP_PORT" "$APP_PORT"
+write_env "INSTANCE_IDENTITY_DIR" "$INSTANCE_IDENTITY_DIR"
 write_env "DATABASE_MODE" "$DATABASE_MODE"
 write_env "POSTGRES_HOST" "$POSTGRES_HOST"
 write_env "POSTGRES_PORT" "$POSTGRES_PORT"
@@ -548,7 +591,7 @@ else
 fi
 
 cat > "$REPORT_FILE" <<EOF
-CloudReport Community - relatorio de instalacao
+CloudReport - relatorio de instalacao
 Gerado em: $(date --iso-8601=seconds)
 
 Aplicacao: ${PUBLIC_URL}
@@ -567,7 +610,7 @@ ${STORAGE_REPORT}
 
 Primeiro acesso:
 1. Abra ${PUBLIC_URL}.
-2. Informe os dados do responsavel e ative a licenca Community.
+2. Informe os dados do responsavel e configure a licenca.
 3. Crie o usuario administrador local.
 4. Sugestao de senha: ${ADMIN_PASSWORD_SUGGESTION}
    Esta senha e apenas uma sugestao e nao foi cadastrada automaticamente.

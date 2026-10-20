@@ -1,8 +1,9 @@
-name: ${COMPOSE_PROJECT_NAME:-cloudreport-community}
+name: ${COMPOSE_PROJECT_NAME:-cloudreport}
 
 services:
   cloudreport:
     image: ${CLOUDREPORT_IMAGE:-docker.io/rovann/cloudreport:latest}
+    hostname: cloudreport
     restart: unless-stopped
     ports:
       - "${APP_BIND_IP:-0.0.0.0}:${APP_PORT:-8080}:8080"
@@ -24,14 +25,14 @@ services:
       BlobStorage__UseSsl: "${MINIO_USE_SSL:-true}"
       Cors__AllowedOrigins__0: "${PUBLIC_URL}"
       License__Provider: Linhalis
-      License__Plan: Community
       License__ApplicationKey: cloud-report
       License__InstanceIdentityPath: /data/instance/identity.key
       License__LicenseWebhookUrl: "${LICENSE_WEBHOOK_URL:-https://n8n.linhalis.com/webhook/54791385-36ab-4ecf-80ef-1ec62c29f91f}"
       License__RegistrationSiteUrl: https://linhalis.com/
-      License__RegistrationWhatsAppUrl: https://wa.me/5527998375077
+      License__RegistrationWhatsAppUrl: https://wa.me/5527995790376
     volumes:
       - cloudreport-data:/data
+      - ${INSTANCE_IDENTITY_DIR:-./state/instance}:/data/instance
     tmpfs:
       - /tmp:size=256m,mode=1777
     security_opt:
