@@ -45,7 +45,7 @@ For external PostgreSQL, create an empty database first and grant the user permi
 
 ### ODBC data sources
 
-The default image includes the `unixODBC` driver manager, but it does not include database- or vendor-specific drivers. To use an ODBC report data source, build a derived CloudReport image that installs the compatible driver and its libraries, together with any required `odbcinst.ini` or `odbc.ini` configuration. Drivers installed only on the Docker host are not available inside the container. Set `DRIVER` to the name registered in `odbcinst.ini`; library paths are rejected.
+The default image includes only the `libodbc2` runtime library. It does not include the `isql`/`iusql` tools or database- or vendor-specific drivers. To use an ODBC report data source, build a derived CloudReport image that installs the compatible driver and its libraries, together with any required `odbcinst.ini` or `odbc.ini` configuration. Drivers installed only on the Docker host are not available inside the container. Set `DRIVER` to the name registered in `odbcinst.ini`; library paths are rejected.
 
 The dedicated PostgreSQL, MySQL, and SQL Server data sources use their own .NET providers and do not depend on an ODBC driver. For ODBC, keep the database credential read-only and verify that the driver name used in the connection string exists in the derived image. `FILEDSN`, `SAVEFILE`, `DBQ`, database files, local sockets/pipes, logs, and library paths are not accepted. When private networks are blocked, use a recognized PostgreSQL, MySQL, MariaDB, or SQL Server driver and provide the host explicitly; `DSN` requires private-network access to be enabled by an administrator.
 
@@ -191,6 +191,8 @@ Allow ports 80/443 through the firewall for the proxy, preserve `Host`, `X-Forwa
 ## Licensing and plans
 
 The effective plan is obtained from the license contract at runtime. Changing the license does not require rebuilding the image or redeploying the application. For commercial information, contact the [official WhatsApp](https://wa.me/5527995790376).
+
+CloudReport is distributed under a [proprietary license](LICENSE), while third-party libraries and operating-system components remain under their respective licenses. The published image includes inventories, attributions, and license texts generated during the build. View them in the installed instance at `/third-party-licenses/THIRD-PARTY-NOTICES.txt`.
 
 ## Support
 

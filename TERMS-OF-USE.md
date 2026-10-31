@@ -1,6 +1,6 @@
 # Termos de Uso — CloudReport Community
 
-**Vigência: 18 de outubro de 2026**
+**Vigência: 31 de outubro de 2026**
 
 Ao ativar ou utilizar o CloudReport Community, você concorda com estes Termos de Uso.
 
@@ -35,6 +35,8 @@ Na extensão permitida por lei, a Linhalis não responde por perda de dados, luc
 ## 7. Propriedade intelectual
 
 CloudReport, sua interface, documentação, marcas e componentes distribuídos continuam pertencendo aos respectivos titulares. Estes termos concedem apenas o direito de uso descrito e não transferem propriedade intelectual.
+
+Componentes de terceiros são licenciados por seus respectivos titulares sob suas próprias licenças. Nada nestes Termos limita os direitos concedidos nem substitui as obrigações estabelecidas nessas licenças. Os avisos, atribuições e textos aplicáveis acompanham a instalação e estão disponíveis em `/third-party-licenses/THIRD-PARTY-NOTICES.txt`.
 
 ## 8. Alterações e encerramento
 

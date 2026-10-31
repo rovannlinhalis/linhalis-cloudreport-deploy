@@ -1,6 +1,6 @@
 # Terms of Use — CloudReport Community
 
-**Effective: October 18, 2026**
+**Effective: October 31, 2026**
 
 By activating or using CloudReport Community, you agree to these Terms of Use.
 
@@ -35,6 +35,8 @@ To the extent permitted by law, Linhalis is not liable for data loss, lost profi
 ## 7. Intellectual property
 
 CloudReport, its interface, documentation, trademarks, and distributed components remain the property of their respective owners. These terms grant only the stated right of use and do not transfer intellectual property.
+
+Third-party components are licensed by their respective owners under their own licenses. Nothing in these Terms limits the rights granted by, or replaces obligations imposed by, those licenses. Applicable notices, attributions, and license texts accompany the installation and are available at `/third-party-licenses/THIRD-PARTY-NOTICES.txt`.
 
 ## 8. Changes and termination
 

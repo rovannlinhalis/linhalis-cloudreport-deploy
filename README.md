@@ -45,7 +45,7 @@ Para PostgreSQL externo, crie previamente um banco vazio e conceda ao usuário p
 
 ### Fontes de dados ODBC
 
-A imagem padrão inclui o gerenciador `unixODBC`, mas não inclui drivers específicos de bancos ou fornecedores. Para usar uma fonte ODBC em um relatório, crie uma imagem derivada do CloudReport que instale o driver compatível e suas bibliotecas, além de qualquer configuração `odbcinst.ini` ou `odbc.ini` necessária. Drivers instalados somente no host não ficam disponíveis dentro do container. Use em `DRIVER` o nome registrado em `odbcinst.ini`; caminhos para a biblioteca são rejeitados.
+A imagem padrão inclui somente a biblioteca de runtime `libodbc2`. Ela não inclui as ferramentas `isql`/`iusql` nem drivers específicos de bancos ou fornecedores. Para usar uma fonte ODBC em um relatório, crie uma imagem derivada do CloudReport que instale o driver compatível e suas bibliotecas, além de qualquer configuração `odbcinst.ini` ou `odbc.ini` necessária. Drivers instalados somente no host não ficam disponíveis dentro do container. Use em `DRIVER` o nome registrado em `odbcinst.ini`; caminhos para a biblioteca são rejeitados.
 
 As fontes dedicadas PostgreSQL, MySQL e SQL Server usam provedores próprios do .NET e não dependem de um driver ODBC. Para ODBC, mantenha a credencial do banco restrita a consultas e confirme que o nome do driver usado na connection string existe na imagem derivada. `FILEDSN`, `SAVEFILE`, `DBQ`, arquivos de banco, sockets/pipes locais, logs e caminhos de bibliotecas não são aceitos. Com redes privadas bloqueadas, use um driver reconhecido de PostgreSQL, MySQL, MariaDB ou SQL Server e informe o host explicitamente; `DSN` requer liberação administrativa de redes privadas.
 
@@ -191,6 +191,8 @@ Libere 80/443 no firewall para o proxy, preserve `Host`, `X-Forwarded-For` e `X-
 ## Licenciamento e planos
 
 O plano efetivo é obtido do contrato de licença em tempo de execução. Alterar a licença não exige reconstruir a imagem nem refazer o deploy. Para informações comerciais, entre em contato pelo [WhatsApp oficial](https://wa.me/5527995790376).
+
+O CloudReport possui [licença proprietária](LICENSE), enquanto as bibliotecas e os componentes de sistema de terceiros permanecem sob suas respectivas licenças. A imagem publicada inclui inventários, atribuições e textos de licença gerados no build. Consulte-os na própria instância em `/third-party-licenses/THIRD-PARTY-NOTICES.txt`.
 
 ## Suporte
 
