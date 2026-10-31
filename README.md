@@ -98,6 +98,8 @@ Abra a URL informada no instalador. O assistente web solicitará:
 - aceite dos Termos de Uso e da Política de Privacidade;
 - criação do administrador local após a licença ser ativada.
 
+O manual completo da instância fica disponível em `https://SEU-ENDERECO/docs`, inclusive antes do login. Ele reúne instruções de primeiro acesso, criação de relatórios, credenciais do projeto, funções JavaScript, fontes de dados, API, administração, backup, atualização e diagnóstico.
+
 Uma instalação nova inicia o registro autônomo do plano Community no primeiro acesso. A instalação dos containers não cria a licença silenciosamente: o responsável conclui o cadastro no próprio CloudReport e, em seguida, cria o único administrador permitido pelo plano Community.
 
 Faça o primeiro acesso imediatamente e mantenha a porta restrita à sua rede até concluir o cadastro. Em uma instalação vazia, a primeira pessoa que concluir essa etapa se torna administradora.
