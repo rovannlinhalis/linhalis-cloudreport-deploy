@@ -8,6 +8,18 @@ This repository contains only the files required to install and update **CloudRe
 
 [Versão em português](README.md) · [Terms of Use](TERMS-OF-USE.en.md) · [Privacy Policy](PRIVACY-POLICY.en.md)
 
+## Quick installation
+
+No GitHub or Docker Hub account and no CloudReport source-code access are required. On a new Linux server, download the public installer as `cloudreport`, inspect it if desired, and run it:
+
+```bash
+curl -fsSLo cloudreport https://raw.githubusercontent.com/rovannlinhalis/linhalis-cloudreport-deploy/main/install.sh
+chmod +x cloudreport
+sudo ./cloudreport
+```
+
+The script displays the CloudReport identity and ASCII logo and guides the entire installation. It generates secrets, pulls the public `docker.io/rovann/cloudreport:latest` image, creates the configuration, starts the selected services, and only finishes after the API responds.
+
 ## Architecture
 
 ![Deployment architecture](docs/images/deployment-architecture.svg)
@@ -24,13 +36,12 @@ The integrated PostgreSQL port is not published on the host. Only the selected C
 ## Requirements
 
 - Linux with administrative access (`root` or `sudo`);
-- Docker Engine 24 or newer;
-- Docker Compose v2 (`docker compose`);
+- Docker Engine 24 or newer and Docker Compose v2 (`docker compose`), or permission for the installer to configure them;
 - `curl`;
 - 2 GB of available RAM; 4 GB recommended;
-- a domain and HTTPS proxy for public use.
+- a domain pointing to the server and an HTTPS proxy for public use; no domain is required for local-network-only use.
 
-For external PostgreSQL, create an empty database first and grant the user permission to create and alter its schema. For external MinIO, the endpoint must be reachable by both the container and browsers opening signed URLs.
+For external PostgreSQL, create an empty database first and grant the user permission to create and alter its schema. For external MinIO, the endpoint must be reachable by both the container and browsers opening signed URLs. MinIO credentials must be able to check or create the bucket, list its contents, and read, write, and delete objects; an object-only policy is not sufficient for the initial bucket check.
 
 ### ODBC data sources
 
@@ -38,13 +49,14 @@ The default image includes the `unixODBC` driver manager, but it does not includ
 
 The dedicated PostgreSQL, MySQL, and SQL Server data sources use their own .NET providers and do not depend on an ODBC driver. For ODBC, keep the database credential read-only and verify that the driver name used in the connection string exists in the derived image. `FILEDSN`, `SAVEFILE`, `DBQ`, database files, local sockets/pipes, logs, and library paths are not accepted. When private networks are blocked, use a recognized PostgreSQL, MySQL, MariaDB, or SQL Server driver and provide the host explicitly; `DSN` requires private-network access to be enabled by an administrator.
 
-## Installation
+## Guided installation
 
-Download and run the installer:
+The recommended command downloads the script as `cloudreport`:
 
 ```bash
-curl -fsSLo install.sh https://raw.githubusercontent.com/rovannlinhalis/linhalis-cloudreport-deploy/main/install.sh
-sudo bash install.sh
+curl -fsSLo cloudreport https://raw.githubusercontent.com/rovannlinhalis/linhalis-cloudreport-deploy/main/install.sh
+chmod +x cloudreport
+sudo ./cloudreport
 ```
 
 When running from a clone of this repository, use:
@@ -55,12 +67,16 @@ sudo bash install.sh
 
 The wizard asks for:
 
-1. installation directory, public URL, bind IP, and port;
-2. integrated or external PostgreSQL;
-3. local volume or external MinIO;
-4. Docker image and final confirmation.
+1. installation directory;
+2. access through a local-network address or a public domain behind an HTTPS proxy;
+3. bind IP, HTTP port, and final application URL;
+4. a dedicated PostgreSQL container or an existing PostgreSQL server, including host, port, database, user, password, and TLS;
+5. a persistent local volume or an existing MinIO server, including endpoint, credentials, bucket, and TLS;
+6. Docker image and final confirmation.
 
-The integrated PostgreSQL password is generated automatically. The installer also always generates the JWT key. The default result is stored under `/opt/cloudreport`:
+For local access, the default publishes the application on every server interface. For a public domain, the default publishes only on `127.0.0.1`, so that a proxy on the same host is the only exposed entry point. The installer detects a conflict on the selected port when the operating system provides that check.
+
+The integrated PostgreSQL password is generated automatically. The installer also always generates the JWT key. If Docker and Compose are not yet available, the wizard offers to install them through Docker's official installer. The default result is stored under `/opt/cloudreport`:
 
 ```text
 /opt/cloudreport/
@@ -72,7 +88,7 @@ The integrated PostgreSQL password is generated automatically. The installer als
 └── update.sh
 ```
 
-The script validates the Compose model, pulls the images, starts PostgreSQL when selected, waits for the database, and only finishes after `/api/bootstrap` responds successfully.
+The script validates the Compose model, pulls the public images, starts PostgreSQL when selected, waits for the database, applies migrations, and only finishes after `/api/bootstrap` responds successfully. It then writes `install-report.txt` with the address, infrastructure choices, and first-access and proxy guidance.
 
 ## First access
 
@@ -81,6 +97,8 @@ Open the URL entered during installation. The web setup wizard asks for:
 - the contract title plus the registrant's name, email, and optional organization;
 - acceptance of the Terms of Use and Privacy Policy;
 - creation of the local administrator after license activation.
+
+A new installation starts the self-service Community plan registration on first access. Installing the containers does not silently create a license: the registrant completes the in-product setup and then creates the single administrator allowed by the Community plan.
 
 Complete the first access immediately and keep the port restricted to your network until registration is finished. On an empty installation, the first person to complete this step becomes the administrator.
 
@@ -137,7 +155,38 @@ Use `COMPOSE_PROFILES=database` only to enable integrated PostgreSQL. Leave `COM
 
 ## HTTPS
 
-Use Caddy, Traefik, Nginx, or your platform proxy. Forward the public domain to `http://BIND_IP:APP_PORT`, preserve `Host`, `X-Forwarded-For`, and `X-Forwarded-Proto`, and allow uploads large enough for your reports.
+For public use, do not expose the application's HTTP port directly. Select the public-domain option in the installer, keep the default `127.0.0.1` bind, and forward the domain to `127.0.0.1:APP_PORT` with Caddy, Traefik, Nginx, or your platform proxy.
+
+Minimal Caddy example, which automatically issues and renews the certificate when DNS and ports 80/443 are correctly configured:
+
+```caddyfile
+reports.example.com {
+    reverse_proxy 127.0.0.1:8080
+}
+```
+
+Example main Nginx block after configuring a valid certificate:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name reports.example.com;
+    ssl_certificate /etc/letsencrypt/live/reports.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/reports.example.com/privkey.pem;
+    client_max_body_size 50m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Allow ports 80/443 through the firewall for the proxy, preserve `Host`, `X-Forwarded-For`, and `X-Forwarded-Proto`, and support uploads large enough for your reports. If the domain changes, update `PUBLIC_URL` in `/opt/cloudreport/.env` and recreate the `cloudreport` container.
 
 ## Licensing and plans
 

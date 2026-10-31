@@ -169,6 +169,25 @@ validate_port() {
         || fatal "Porta invalida: $value"
 }
 
+validate_bind_ip() {
+    local value="$1" octet
+    local -a octets
+    [[ "$value" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] \
+        || fatal "Informe um endereco IPv4 para publicacao, por exemplo 0.0.0.0 ou 127.0.0.1."
+    IFS='.' read -r -a octets <<< "$value"
+    for octet in "${octets[@]}"; do
+        (( 10#$octet >= 0 && 10#$octet <= 255 )) \
+            || fatal "Endereco IPv4 invalido: $value"
+    done
+}
+
+ensure_port_available() {
+    local port="$1"
+    if command -v ss >/dev/null 2>&1 && ss -H -ltn "sport = :${port}" 2>/dev/null | grep -q .; then
+        fatal "A porta ${port} ja esta em uso. Escolha outra porta e execute o instalador novamente."
+    fi
+}
+
 validate_public_url() {
     [[ "$1" =~ ^https?://[^/[:space:]]+/?$ ]] \
         || fatal "A URL publica deve usar http:// ou https:// e nao pode conter caminho."
@@ -418,15 +437,47 @@ prepare_instance_identity
 
 info "Acesso ao CloudReport"
 DETECTED_SERVER_IP="$(detect_server_ipv4)"
+printf '  1) Acesso pela rede local (endereco IP deste servidor)\n'
+printf '  2) Dominio publico por proxy reverso com HTTPS\n\n'
+printf 'Como a aplicacao sera acessada? [1]: '
+IFS= read -r ACCESS_CHOICE <&3 || true
+ACCESS_CHOICE="${ACCESS_CHOICE:-1}"
+
+case "$ACCESS_CHOICE" in
+    1)
+        ACCESS_MODE="local"
+        DEFAULT_BIND_IP="0.0.0.0"
+        ;;
+    2)
+        ACCESS_MODE="proxy"
+        DEFAULT_BIND_IP="127.0.0.1"
+        ;;
+    *) fatal "Opcao de acesso invalida." ;;
+esac
+
+prompt APP_BIND_IP "IP do host que publicara a aplicacao" "$DEFAULT_BIND_IP"
+validate_bind_ip "$APP_BIND_IP"
+prompt APP_PORT "Porta HTTP publicada no host" "8080"
+validate_port "$APP_PORT"
+ensure_port_available "$APP_PORT"
+
+if [[ "$ACCESS_MODE" == "local" ]]; then
+    DEFAULT_PUBLIC_URL="http://${DETECTED_SERVER_IP}:${APP_PORT}"
+    PUBLIC_URL_LABEL="Endereco da aplicacao na rede local (sem barra final)"
+else
+    DEFAULT_PUBLIC_URL=""
+    PUBLIC_URL_LABEL="URL publica HTTPS da aplicacao, por exemplo https://relatorios.exemplo.com (sem barra final)"
+fi
+
 while :; do
-    prompt PUBLIC_URL "URL publica da aplicacao (sem barra final)" "http://${DETECTED_SERVER_IP}:8080"
+    prompt PUBLIC_URL "$PUBLIC_URL_LABEL" "$DEFAULT_PUBLIC_URL"
     PUBLIC_URL="${PUBLIC_URL%/}"
     validate_public_url "$PUBLIC_URL" && break
 done
-prompt APP_BIND_IP "IP do host que publicara a aplicacao" "0.0.0.0"
-[[ -n "$APP_BIND_IP" ]] || fatal "O IP de publicacao e obrigatorio."
-prompt APP_PORT "Porta HTTP publicada no host" "8080"
-validate_port "$APP_PORT"
+
+if [[ "$ACCESS_MODE" == "proxy" && "$PUBLIC_URL" != https://* ]]; then
+    printf 'Aviso: para acesso publico, use HTTPS no proxy reverso antes de disponibilizar a instancia.\n'
+fi
 
 info "Banco de dados"
 if confirm "Subir um PostgreSQL exclusivo no Docker?" "s"; then
@@ -443,7 +494,7 @@ if confirm "Subir um PostgreSQL exclusivo no Docker?" "s"; then
 else
     DATABASE_MODE="external"
     COMPOSE_PROFILES=""
-    prompt POSTGRES_HOST "Host/IP do PostgreSQL externo" "postgres.exemplo.local"
+    prompt POSTGRES_HOST "Host/IP do PostgreSQL externo"
     prompt POSTGRES_PORT "Porta do PostgreSQL" "5432"
     validate_port "$POSTGRES_PORT"
     prompt POSTGRES_DB "Nome do banco" "cloudreport"
@@ -485,7 +536,8 @@ case "$STORAGE_CHOICE" in
     2)
         STORAGE_MODE="minio"
         BLOB_PROVIDER="Minio"
-        prompt MINIO_ENDPOINT "Endpoint do MinIO (host:porta, sem caminho)" "minio.exemplo.com:9000"
+        printf 'O instalador nao cria o MinIO. Informe uma instancia existente e acessivel pelo servidor.\n'
+        prompt MINIO_ENDPOINT "Endpoint do MinIO (host:porta, sem caminho)"
         case "$MINIO_ENDPOINT" in
             https://*) MINIO_ENDPOINT="${MINIO_ENDPOINT#https://}"; MINIO_USE_SSL="true" ;;
             http://*) MINIO_ENDPOINT="${MINIO_ENDPOINT#http://}"; MINIO_USE_SSL="false" ;;
@@ -523,6 +575,7 @@ ENV_FILE="$TEMP_ENV"
 write_env "COMPOSE_PROJECT_NAME" "$COMPOSE_PROJECT_NAME"
 write_env "COMPOSE_PROFILES" "$COMPOSE_PROFILES"
 write_env "CLOUDREPORT_IMAGE" "$CLOUDREPORT_IMAGE"
+write_env "ACCESS_MODE" "$ACCESS_MODE"
 write_env "PUBLIC_URL" "$PUBLIC_URL"
 write_env "APP_BIND_IP" "$APP_BIND_IP"
 write_env "APP_PORT" "$APP_PORT"
@@ -550,6 +603,7 @@ chmod 600 "$ENV_FILE"
 info "Resumo da instalacao"
 printf '  Imagem:         %s\n' "$CLOUDREPORT_IMAGE"
 printf '  Aplicacao:      %s\n' "$PUBLIC_URL"
+printf '  Acesso:         %s\n' "$ACCESS_MODE"
 printf '  Porta:          %s:%s -> 8080\n' "$APP_BIND_IP" "$APP_PORT"
 printf '  PostgreSQL:     %s (%s:%s/%s)\n' "$DATABASE_MODE" "$POSTGRES_HOST" "$POSTGRES_PORT" "$POSTGRES_DB"
 printf '  Armazenamento:  %s\n' "$STORAGE_MODE"
@@ -590,6 +644,11 @@ else
     STORAGE_REPORT="Volume local persistente: ${COMPOSE_PROJECT_NAME}_cloudreport-data (/data/storage)"
 fi
 
+PROXY_UPSTREAM_HOST="$APP_BIND_IP"
+case "$PROXY_UPSTREAM_HOST" in
+    ""|"0.0.0.0"|"::") PROXY_UPSTREAM_HOST="127.0.0.1" ;;
+esac
+
 cat > "$REPORT_FILE" <<EOF
 CloudReport - relatorio de instalacao
 Gerado em: $(date --iso-8601=seconds)
@@ -597,6 +656,7 @@ Gerado em: $(date --iso-8601=seconds)
 Aplicacao: ${PUBLIC_URL}
 Diretorio da instalacao: ${INSTALL_DIR}
 Imagem: ${CLOUDREPORT_IMAGE}
+Modo de acesso: ${ACCESS_MODE}
 
 PostgreSQL: ${DATABASE_MODE}
 Host: ${POSTGRES_HOST}:${POSTGRES_PORT}
@@ -610,10 +670,16 @@ ${STORAGE_REPORT}
 
 Primeiro acesso:
 1. Abra ${PUBLIC_URL}.
-2. Informe os dados do responsavel e configure a licenca.
+2. Conclua o registro gratuito do plano Community no assistente da aplicacao.
 3. Crie o usuario administrador local.
 4. Sugestao de senha: ${ADMIN_PASSWORD_SUGGESTION}
    Esta senha e apenas uma sugestao e nao foi cadastrada automaticamente.
+
+Publicacao com HTTPS:
+- Para expor o CloudReport na internet, configure Caddy, Nginx, Traefik ou o proxy da sua plataforma.
+- Encaminhe o dominio para http://${PROXY_UPSTREAM_HOST}:${APP_PORT} e preserve Host, X-Forwarded-For e X-Forwarded-Proto.
+- Emita um certificado TLS valido e mantenha a porta da aplicacao restrita quando o proxy estiver no mesmo servidor.
+- Se o endereco final mudar, atualize PUBLIC_URL em ${ENV_FILE} e recrie o container cloudreport.
 
 Operacao:
   cd ${INSTALL_DIR}
@@ -628,3 +694,4 @@ chmod 600 "$REPORT_FILE"
 
 success "Instalacao concluida."
 cat "$REPORT_FILE"
+printf '\nRecomendacao: antes de expor esta instancia na internet, configure um proxy reverso com HTTPS.\n'
