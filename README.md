@@ -121,6 +121,8 @@ Para fixar uma versão:
 sudo CLOUDREPORT_INSTALL_VERSION=1.2.3 ./update.sh
 ```
 
+O arquivo público [`version.json`](version.json) identifica a versão mais recente publicada no Docker Hub. As instâncias consultam esse manifesto periodicamente e mostram em **Configurações > Atualizações** quando existe uma versão mais nova. A verificação apenas informa a disponibilidade; a atualização continua sendo iniciada pelo administrador com `update.sh`.
+
 ## Operação
 
 ```bash
