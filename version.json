@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.6.10.27",
-  "publishedAtUtc": "2026-11-09T16:35:49.437201Z",
-  "image": "docker.io/rovann/cloudreport:1.6.10.27",
+  "version": "1.6.10.28",
+  "publishedAtUtc": "2026-11-09T17:30:26.600137Z",
+  "image": "docker.io/rovann/cloudreport:1.6.10.28",
   "releaseNotesUrl": null,
   "updateInstructionsUrl": "https://github.com/rovannlinhalis/linhalis-cloudreport-deploy#atualização"
 }
