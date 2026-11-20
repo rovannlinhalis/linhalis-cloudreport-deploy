@@ -3,6 +3,6 @@
   "version": "1.6.10.33",
   "publishedAtUtc": "2026-11-20T13:58:18.273913Z",
   "image": "docker.io/rovann/cloudreport:1.6.10.33",
-  "releaseNotesUrl": null,
+  "releaseNotesUrl": "https://github.com/rovannlinhalis/linhalis-cloudreport-deploy/blob/main/docs/release-notes.md",
   "updateInstructionsUrl": "https://github.com/rovannlinhalis/linhalis-cloudreport-deploy#atualização"
 }

@@ -119,7 +119,7 @@ To pin a release:
 sudo CLOUDREPORT_INSTALL_VERSION=1.2.3 ./update.sh
 ```
 
-The public [`version.json`](version.json) file identifies the latest version published to Docker Hub. Instances periodically read this manifest and show an update notice under **Settings > Updates** when a newer version is available. The check only reports availability; an administrator still starts the update with `update.sh`.
+The public [`version.json`](version.json) file identifies the latest version published to Docker Hub and links to the [release notes in Portuguese](docs/release-notes.md). Instances periodically read the manifest and show an update notice under **Settings > Updates** when a newer version is available. To apply the update, run `update.sh`.
 
 ## Operations
 
